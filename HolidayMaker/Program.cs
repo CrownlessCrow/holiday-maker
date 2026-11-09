@@ -14,7 +14,12 @@ await connection.OpenAsync();// inger upp och loggar in i MySQL
 
 var customers = new CustomerRepository(connection); //skapar en robot som håller kopplingen och jobbar när den får en order
 
+int newId = await customers.CreateCustomerAsync("Monkey D", "Luffy", "070-123-1234", "luffy@onepiece.com"); // testar skapa kund
+Console.WriteLine($"Ny kund skapad med id {newId}"); 
+
+
 foreach (Customer c in await customers.GetCustomersAsync()) // kör SELECT, ta en kund i taget
 {
     Console.WriteLine(c); //skriv ut kunden
 }//appen klar o stänger
+

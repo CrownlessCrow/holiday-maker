@@ -6,10 +6,10 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
     // Order: hämta alla kunder
     public async Task<List<Customer>> GetCustomersAsync()          // svarar med en lista av kunder, men vi får vänta med den. (lovar en lista)
     {
-        await using var command = new MySqlCommand(                // SQL frågan som ska skickas (vänta)
+        await using var command = new MySqlCommand(                 // förbereder SELECT frågan (skickas inte än)
             "SELECT id, first_name, last_name, phone, email FROM Customer ORDER BY id;", connection);
 
-        await using var reader = await command.ExecuteReaderAsync();   // ring MySQL, få svar att läsa (kundlistan)
+        await using var reader = await command.ExecuteReaderAsync();   // ring MySQL, få svar att läsa (raderna)
 
         var customers = new List<Customer>();                      // tom lista att fylla, kan bara innehålla customer typ.
         while (await reader.ReadAsync())                           // läser en rad i taget till det är slut
@@ -25,4 +25,27 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
         }
         return customers;                                          // skicka tillbaka listan
     }
+
+ // Order: skapa en ny kund, returnerar nya kundens id
+    public async Task<int> CreateCustomerAsync(string firstName, string lastName, string phone, string? email) // skapar en kund, lovar tillbaka nya kundens id (nästa lediga, t.ex. 6)
+    {
+        await using var command = new MySqlCommand(               // förbereder INSERT-frågan med @luckor (skickas inte än)
+            "INSERT INTO Customer (first_name, last_name, phone, email) " +
+            "VALUES (@first_name, @last_name, @phone, @email);", connection);
+
+        command.Parameters.AddWithValue("@first_name", firstName); // fyll lucka @first_name
+        command.Parameters.AddWithValue("@last_name", lastName);   // fyll lucka @last_name
+        command.Parameters.AddWithValue("@phone", phone);          // fyll lucka @phone
+        command.Parameters.AddWithValue("@email", (object?)email ?? DBNull.Value); // email om den finns, annars NULL i databasen
+
+        await command.PrepareAsync();                              // MySQL förbereder frågan
+        await command.ExecuteNonQueryAsync();                      // kör INSERT (inga rader att läsa)
+
+        return checked((int)command.LastInsertedId);               // id som AUTO_INCREMENT just gav kunden
+    }
 }
+
+
+
+
+
