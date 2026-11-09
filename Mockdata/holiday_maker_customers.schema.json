@@ -1,0 +1,35 @@
+{
+  "id": 736752,
+  "num_rows": 5,
+  "file_format": "sql",
+  "name": "holiday_maker_customers",
+  "table_name": "Customer",
+  "include_create_sql": false,
+  "columns": [
+    {
+      "name": "first_name",
+      "null_percentage": 0,
+      "type": "First Name",
+      "formula": null
+    },
+    {
+      "name": "last_name",
+      "null_percentage": 0,
+      "type": "Last Name",
+      "formula": null
+    },
+    {
+      "name": "email",
+      "null_percentage": 20,
+      "type": "Email Address",
+      "formula": null
+    },
+    {
+      "name": "phone",
+      "null_percentage": 0,
+      "type": "Phone",
+      "format": "###-###-####",
+      "formula": null
+    }
+  ]
+}
