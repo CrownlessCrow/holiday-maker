@@ -38,9 +38,19 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
         command.Parameters.AddWithValue("@phone", phone);          // fyll lucka @phone
         command.Parameters.AddWithValue("@email", (object?)email ?? DBNull.Value); // email om den finns, annars NULL i databasen
 
-        await command.PrepareAsync();                              // MySQL förbereder frågan
-        await command.ExecuteNonQueryAsync();                      // kör INSERT (inga rader att läsa)
+        await command.PrepareAsync(); // MySQL förbereder frågan
+        await command.ExecuteNonQueryAsync(); // kör INSERT (inga rader att läsa)
 
-        return checked((int)command.LastInsertedId);               // id som AUTO_INCREMENT just gav kunden
+        return checked((int)command.LastInsertedId); // id som AUTO_INCREMENT just gav kunden
+    }
+    
+    // Order: finns kunden? true/false
+    public async Task<bool> CustomerExistsAsync(int customerId)
+    {
+        await using var command = new MySqlCommand(
+            "SELECT EXISTS (SELECT 1 FROM Customer WHERE id = @id);", connection);   // 1 = finns, 0 = finns inte
+        command.Parameters.AddWithValue("@id", customerId);
+        await command.PrepareAsync();
+        return Convert.ToInt32(await command.ExecuteScalarAsync()) == 1;   // ExecuteScalar = ett enda värde tillbaka
     }
 }

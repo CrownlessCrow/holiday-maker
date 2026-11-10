@@ -93,6 +93,14 @@ while (running)
         case "4": // boka rum
             {
                 int customerId = ReadPositiveInt("Kund-id: ");
+
+               if (!await customers.CustomerExistsAsync(customerId))     // finns kunden inte?
+               {
+                   Console.WriteLine("❌ Kund-id finns inte. Välj 1 för att se kunderna.");
+                   break;  // tillbaka till menyn
+               }
+
+
                 int roomId = ReadPositiveInt("Rum-id (från sökningen): ");
                 DateTime checkIn = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
                 DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
