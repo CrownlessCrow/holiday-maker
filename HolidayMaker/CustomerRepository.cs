@@ -11,7 +11,7 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
 
         await using var reader = await command.ExecuteReaderAsync();   // ring MySQL, f책 svar att l채sa (raderna)
 
-        var customers = new List<Customer>();                      // tom lista att fylla, kan bara inneh책lla customer typ.
+        var customers = new List<Customer>();                      // tom lista att fylla, kan bara inneh책lla customer typ eller ny mapp.   
         while (await reader.ReadAsync())                           // l채ser en rad i taget till det 채r slut
         {
             customers.Add(new Customer(                       // fyller i ett kundkort och l채gger i listan

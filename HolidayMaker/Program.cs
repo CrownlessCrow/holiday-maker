@@ -14,12 +14,67 @@ await connection.OpenAsync();// inger upp och loggar in i MySQL
 
 var customers = new CustomerRepository(connection); //skapar en robot som håller kopplingen och jobbar när den får en order
 
-int newId = await customers.CreateCustomerAsync("Monkey D", "Luffy", "070-123-1234", "luffy@onepiece.com"); // testar skapa kund
-Console.WriteLine($"Ny kund skapad med id {newId}"); 
 
 
-foreach (Customer c in await customers.GetCustomersAsync()) // kör SELECT, ta en kund i taget
+
+// ── MENY
+bool running = true;                                      // menyn körs tills användaren väljer 0 för avslut
+while (running)
 {
-    Console.WriteLine(c); //skriv ut kunden
-}//appen klar o stänger
+    Console.WriteLine();
+    Console.WriteLine("=== HOLIDAY MAKER ===");
+    Console.WriteLine("1. Visa kunder");
+    Console.WriteLine("2. Ny kund");
+    Console.WriteLine("0. Avsluta");
+    Console.Write("Val: ");
+    string? choice = Console.ReadLine();                  // läser vad användaren skriver
 
+    switch (choice)                                       // väljer vad som ska hända
+    {
+        case "1":                                         // ── visa kunder
+            foreach (Customer c in await customers.GetCustomersAsync())
+            {
+                Console.WriteLine($"{c.Id}. {c.FirstName} {c.LastName}, {c.Phone}, {c.Email ?? "(ingen email)"}");
+            }
+            break;
+
+        case "2":                                         // ── ny kund
+            string firstName = ReadRequired("Förnamn: ");
+            string lastName  = ReadRequired("Efternamn: ");
+            string phone     = ReadRequired("Telefon: ");
+            Console.Write("Email (frivillig, Enter för att hoppa över): ");
+            string? email = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(email)) email = null;   // tomt → NULL i databasen
+
+            try
+            {
+                int newId = await customers.CreateCustomerAsync(firstName, lastName, phone, email);
+                Console.WriteLine($"✅ Kund skapad med id {newId}");
+            }
+            catch (MySqlException ex)                     // t.ex. email finns redan (UNIQUE)
+            {
+                Console.WriteLine($"❌ Kunde inte skapa kund: {ex.Message}");
+            }
+            break;
+
+        case "0":                                         // ── avsluta
+            running = false;
+            break;
+
+        default:                                          // ── allt annat
+            Console.WriteLine("Ogiltigt val, försök igen.");
+            break;
+    }
+}
+
+// Frågar tills användaren skriver något (tomt svar godkänns inte)
+static string ReadRequired(string prompt)
+{
+    while (true)
+    {
+        Console.Write(prompt);
+        string? input = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(input)) return input.Trim();
+        Console.WriteLine("Fältet får inte vara tomt.");
+    }
+}
