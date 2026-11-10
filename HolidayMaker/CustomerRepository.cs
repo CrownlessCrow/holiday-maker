@@ -44,8 +44,3 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f√
         return checked((int)command.LastInsertedId);               // id som AUTO_INCREMENT just gav kunden
     }
 }
-
-
-
-
-

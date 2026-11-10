@@ -1,0 +1,2 @@
+// Ett ledigt rum i sökresultatet (data från room + accommodation + city)
+public sealed record AvailableRoom(int RoomId, string AccommodationName, string City, string RoomNumber, int Capacity, decimal PricePerNight);
