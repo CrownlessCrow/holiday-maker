@@ -14,6 +14,7 @@ await connection.OpenAsync();// inger upp och loggar in i MySQL
 
 var customers = new CustomerRepository(connection); //skapar en robot som håller kopplingen och jobbar när den får en order
 var rooms = new RoomRepository(connection); // Robot för rum
+var bookings  = new BookingRepository(connection); // robot för bokningar.
 
 
 
@@ -26,6 +27,7 @@ while (running)
     Console.WriteLine("1. Visa kunder");
     Console.WriteLine("2. Ny kund");
     Console.WriteLine("3. Sök lediga rum");
+    Console.WriteLine("4. Boka rum");
     Console.WriteLine("0. Avsluta");
     Console.Write("Val: ");
     string? choice = Console.ReadLine();  // läser vad användaren skriver
@@ -79,13 +81,46 @@ while (running)
                 }
 
                 int nights = (checkOut - checkIn).Days;       // antal nätter t.ex (13 dec utcheck) - (10 dec incheck) blir 3 nätter
-                Console.WriteLine($"Lediga rum i {city}, {nights} nätter:"); 
+                Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
                 foreach (AvailableRoom r in available) //Går genom alla lediga rum
                 {
                     Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt"); //texten
                 }
                 break;
             }
+
+        case "4": // boka rum
+        {
+            int customerId = ReadPositiveInt("Kund-id: ");
+            int roomId     = ReadPositiveInt("Rum-id (från sökningen): ");
+            DateTime checkIn  = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
+            DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
+            if (checkOut <= checkIn)  // samma regel som CHECK i databasen
+            {
+                Console.WriteLine("Utcheckning måste vara efter incheckning.");
+                break;
+            }
+            int guests = ReadPositiveInt("Antal gäster: ");
+
+            try
+            {
+                BookingConfirmation? booking = await bookings.CreateBookingAsync(customerId, roomId, guests, checkIn, checkOut);
+                if (booking is null)  // 0 rader sparades, nekad om bokningen är null.
+                {
+                    Console.WriteLine("❌ Kunde inte boka: rummet är upptaget, finns inte eller rymmer inte så många gäster.");
+                    break;
+                }
+                Console.WriteLine($"✅ Bokning skapad! Bokningsnummer: {booking.BookingId}");
+                Console.WriteLine($"   {booking.Nights} nätter × {booking.PricePerNight} kr = {booking.TotalPrice} kr");
+            }
+            catch (MySqlException ex)  // t.ex. kund-id finns inte.
+            {
+                Console.WriteLine($"❌ Kunde inte boka: {ex.Message}");
+            }
+            break;
+        }
+
+
 
         case "0": //avsluta
             running = false;
