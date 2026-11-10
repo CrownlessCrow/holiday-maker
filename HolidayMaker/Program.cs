@@ -23,7 +23,7 @@ bool running = true; // menyn körs tills användaren väljer 0 för avslut
 while (running)
 {
     Console.WriteLine();
-    Console.WriteLine("=== HOLIDAY MAKER ===");
+    Console.WriteLine("--- HOLIDAY MAKER ---");
     Console.WriteLine("1. Visa kunder");
     Console.WriteLine("2. Ny kund");
     Console.WriteLine("3. Sök lediga rum");
@@ -57,7 +57,7 @@ while (running)
             }
             catch (MySqlException ex) // t.ex. email finns redan (UNIQUE)
             {
-                Console.WriteLine($"❌ Kunde inte skapa kund: {ex.Message}");
+                PrintError($"❌ Kunde inte skapa kund: {ex.Message}");
             }
             break;
 
@@ -69,7 +69,7 @@ while (running)
                 DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
                 if (checkOut <= checkIn)  // samma regel som CHECK i databasen
                 {
-                    Console.WriteLine("Utcheckning måste vara efter incheckning."); //Återgår till menyn
+                    PrintError("Utcheckning måste vara efter incheckning."); //Återgår till menyn
                     break;
                 }
                 int guests = ReadPositiveInt("Antal gäster: "); //minst 1 gäst, fråga igen vid 0
@@ -77,7 +77,7 @@ while (running)
                 List<AvailableRoom> available = await rooms.SearchAvailableRoomsAsync(city, checkIn, checkOut, guests); // roboten söker lediga rum som rymmer alla gäster
                 if (available.Count == 0)
                 {
-                    Console.WriteLine("Inga lediga rum hittades.");
+                    PrintError("Inga lediga rum hittades.");
                     break; //tillbaka till meny om rum inte hittades
                 }
 
@@ -96,17 +96,17 @@ while (running)
 
                if (!await customers.CustomerExistsAsync(customerId))     // finns kunden inte?
                {
-                   Console.WriteLine("❌ Kund-id finns inte. Välj 1 för att se kunderna.");
+                   PrintError("❌ Kund-id finns inte. Välj 1 för att se kunderna.");
                    break;  // tillbaka till menyn
                }
 
 
-                int roomId = ReadPositiveInt("Rum-id (från sökningen): ");
+                int roomId = ReadPositiveInt("Rum-id: ");
                 DateTime checkIn = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
                 DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
                 if (checkOut <= checkIn)  // samma regel som CHECK i databasen
                 {
-                    Console.WriteLine("Utcheckning måste vara efter incheckning.");
+                    PrintError("Utcheckning måste vara efter incheckning.");
                     break;
                 }
                 int guests = ReadPositiveInt("Antal gäster: ");
@@ -116,7 +116,7 @@ while (running)
                     BookingConfirmation? booking = await bookings.CreateBookingAsync(customerId, roomId, guests, checkIn, checkOut);
                     if (booking is null)  // 0 rader sparades, nekad om bokningen är null.
                     {
-                        Console.WriteLine("❌ Kunde inte boka: rummet är upptaget, finns inte eller rymmer inte så många gäster.");
+                        PrintError("❌ Kunde inte boka: rummet är upptaget, finns inte eller rymmer inte så många gäster.");
                         break;
                     }
                     Console.WriteLine($"✅ Bokning skapad! Bokningsnummer: {booking.BookingId}");
@@ -124,7 +124,7 @@ while (running)
                 }
                 catch (MySqlException ex)  // t.ex. kund-id finns inte.
                 {
-                    Console.WriteLine($"❌ Kunde inte boka: {ex.Message}");
+                    PrintError($"❌ Kunde inte boka: {ex.Message}");
                 }
                 break;
             }
@@ -135,7 +135,7 @@ while (running)
 
                 if (customerBookings.Count == 0) //om listan är tom = kunden har inga bokningar (eller finns inte)
                 {
-                    Console.WriteLine("Kunden har inga bokningar (eller finns inte).");
+                    PrintError("Kunden har inga bokningar (eller finns inte).");
                     break;                                    // tillbaka till menyn
                 }
 
@@ -153,7 +153,7 @@ while (running)
             break;
 
         default: //allt annat
-            Console.WriteLine("Ogiltigt val, försök igen.");
+            PrintError("Ogiltigt val, försök igen.");
             break;
     }
 }
@@ -166,7 +166,7 @@ static string ReadRequired(string prompt)
         Console.Write(prompt);
         string? input = Console.ReadLine();
         if (!string.IsNullOrWhiteSpace(input)) return input.Trim();
-        Console.WriteLine("Fältet får inte vara tomt.");
+        PrintError("Fältet får inte vara tomt.");
     }
 
 }
@@ -180,7 +180,7 @@ static DateTime ReadDate(string prompt)// IN frågan, UT ett datum
         if (DateTime.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", null,  // försöker göra om texten till ett datum (ÅÅÅÅ-MM-DD)
                 System.Globalization.DateTimeStyles.None, out DateTime date)) // text till datum i formatet ÅÅÅÅ-MM-DD (null = datorns land)
             return date;   // giltigt, skicka tillbaka datumet
-        Console.WriteLine("Skriv datum som ÅÅÅÅ-MM-DD, t.ex. 2026-12-10."); // ogiltigt. säg till och fråga igen
+        PrintError("Skriv datum som ÅÅÅÅ-MM-DD, t.ex. 2026-12-10."); // ogiltigt. säg till och fråga igen
     }
 }
 
@@ -192,6 +192,14 @@ static int ReadPositiveInt(string prompt)
         Console.Write(prompt);
         if (int.TryParse(Console.ReadLine(), out int number) && number > 0) // gör om texten till ett heltal och  att den ska vara större än 0.
             return number;
-        Console.WriteLine("Skriv ett heltal större än 0.");
+        PrintError("Skriv ett heltal större än 0.");
     }
+}
+
+// Skriver ut ett felmeddelande i gul färg
+static void PrintError(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;   // byt textfärg till gul
+    Console.WriteLine(message);                       // skriv meddelandet
+    Console.ResetColor();                             // tillbaka till vanlig färg
 }
