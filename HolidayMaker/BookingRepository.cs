@@ -54,4 +54,39 @@ public class BookingRepository(MySqlConnection connection)
             reader.GetDecimal("price_per_night"),
             reader.GetDecimal("total_price"));
     }
+
+    // 4d i 03_queries.sql: kundens bokningar med totalpris (nätter × pris), sorterade på datumz
+    public async Task<List<CustomerBooking>> GetBookingsForCustomerAsync(int customerId)// IN: kund-id, t.ex. 1 (Ailis). UT: lovar en lista med CustomerBooking (record), kan vara tom
+    {
+        await using var command = new MySqlCommand(
+            """ 
+            SELECT Booking.id, Accommodation.name AS accommodation_name, Room.room_number,
+                   Booking.check_in_date, Booking.check_out_date, Booking.number_of_guests,
+                   DATEDIFF(Booking.check_out_date, Booking.check_in_date) * Room.price_per_night AS total_price
+            FROM Booking
+            JOIN Room          ON Booking.room_id = Room.id
+            JOIN Accommodation ON Room.accommodation_id = Accommodation.id
+            WHERE Booking.customer_id = @customer_id
+            ORDER BY Booking.check_in_date;
+            """, connection);                                      // samma SQL som 4d, men med @lucka
+
+        command.Parameters.AddWithValue("@customer_id", customerId);  // fyll luckan med kund-id
+        await command.PrepareAsync();  // skickar mallen till MySQL så den kan förbereda sig
+
+        await using var reader = await command.ExecuteReaderAsync(); // skickar kund-id, kör frågan och tar emot svaret (raderna)
+
+        var customerBookings = new List<CustomerBooking>(); // tom mapp, kan bara innehålla CustomerBooking
+        while (await reader.ReadAsync()) // läser en bokning i taget tills det är slut (kan vara flera)
+        {
+            customerBookings.Add(new CustomerBooking( // fyller i ett bokningskort och lägger i mappen
+                reader.GetInt32("id"),
+                reader.GetString("accommodation_name"),
+                reader.GetString("room_number"),
+                reader.GetDateTime("check_in_date"),  // DATE till DateTime
+                reader.GetDateTime("check_out_date"),
+                reader.GetInt32("number_of_guests"),
+                reader.GetDecimal("total_price")));
+        }
+        return customerBookings; //löftet uppfylls  och return.
+    }
 }

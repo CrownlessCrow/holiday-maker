@@ -1,0 +1,2 @@
+// En bokning i kundens bokningslista
+public sealed record CustomerBooking(int BookingId, string AccommodationName, string RoomNumber, DateTime CheckIn, DateTime CheckOut, int Guests, decimal TotalPrice);
