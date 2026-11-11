@@ -65,33 +65,80 @@ while (running)
 
 
         case "3": //sök lediga rum
+        {
+            // Standard: inga filter (spelar ingen roll), sortera på pris
+            bool? pool = null, restaurant = null; // null = spelar ingen roll
+            int? maxBeach = null, maxCenter = null; // null = spelar ingen roll
+            bool sortByRating = false;  // false = pris, true = betyg
+
+            //  1. Vill operatören ha filter? 
+            Console.Write("Vill du lägga till filter? (ja/nej): ");
+            bool choosing = Console.ReadLine()?.Trim().ToLower() == "ja"; // ja -> filtermenyn, annat -> standard
+
+            // ── 2. Filtermeny (bara om man svarade ja) ──
+            while (choosing)
             {
-                string city = ReadRequired("Stad: "); // måste skriva något
-                DateTime checkIn = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): "); // Måste skriva ett giltigt datum.
-                DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
-                if (checkOut <= checkIn)  // samma regel som CHECK i databasen
-                {
-                    PrintError("Utcheckning måste vara efter incheckning."); //Återgår till menyn
-                    break;
-                }
-                int guests = ReadPositiveInt("Antal gäster: "); //minst 1 gäst, fråga igen vid 0
+                Console.WriteLine();
+                Console.WriteLine("--- FILTER ---");
+                Console.WriteLine($"1. Pool          {TriText(pool)}");
+                Console.WriteLine($"2. Restaurang    {TriText(restaurant)}");
+                Console.WriteLine($"3. Max strand    {(maxBeach is null ? "spelar ingen roll" : maxBeach + " m")}");
+                Console.WriteLine($"4. Max centrum   {(maxCenter is null ? "spelar ingen roll" : maxCenter + " m")}");
+                Console.WriteLine($"5. Sortering     {(sortByRating ? "betyg (högst först)" : "pris (lägst först)")}");
+                Console.WriteLine("9. Fortsätt till sökning");
+                Console.Write("Val: ");
 
-                List<AvailableRoom> available = await rooms.SearchAvailableRoomsAsync(city, checkIn, checkOut, guests); // roboten söker lediga rum som rymmer alla gäster
-                if (available.Count == 0)
+                switch (Console.ReadLine())
                 {
-                    PrintError("Inga lediga rum hittades.");
-                    break; //tillbaka till meny om rum inte hittades
+                    case "1": pool = NextTriState(pool); break;   // spelar ingen roll → ja → nej i Next_Tri_State funktionen.
+                    case "2": restaurant = NextTriState(restaurant); break;
+                    case "3": maxBeach  = ReadOptionalInt("Max meter till strand (Enter = spelar ingen roll): "); break;
+                    case "4": maxCenter = ReadOptionalInt("Max meter till centrum (Enter = spelar ingen roll): "); break;
+                    case "5": sortByRating = !sortByRating; break; // växla pris/betyg
+                    case "9": choosing = false; break;    // klar -> vidare
+                    default:  PrintError("Ogiltigt val."); break;
                 }
-
-                int nights = (checkOut - checkIn).Days;       // antal nätter t.ex (13 dec utcheck) - (10 dec incheck) blir 3 nätter
-                Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
-                foreach (AvailableRoom r in available) //Går genom alla lediga rum
-                {
-                    Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt"); //texten
-                }
-                break;
             }
 
+            // 3. Stad, datum och gäster 
+            string city       = ReadRequired("Stad: ");
+            DateTime checkIn  = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
+            DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
+            if (checkOut <= checkIn)   // samma regel som CHECK i databasen
+            {
+                PrintError("Utcheckning måste vara efter incheckning.");
+                break;
+            }
+            int guests = ReadPositiveInt("Antal gäster: ");
+
+            //4. Sök
+            List<AvailableRoom> available = await rooms.SearchAvailableRoomsAsync(
+                city, checkIn, checkOut, guests, pool, restaurant, maxBeach, maxCenter, sortByRating);
+
+            if (available.Count == 0)
+            {
+                PrintError("Inga lediga rum hittades.");
+                break;
+            }
+            int nights = (checkOut - checkIn).Days; // antal nätter
+
+            // Visa vilka filter som användes
+            Console.WriteLine($"Filter: pool {TriText(pool)}, restaurang {TriText(restaurant)}, " +
+                              $"strand {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
+                              $"centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
+                              $"sortering {(sortByRating ? "betyg" : "pris")}"); //ternary operator
+
+            Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
+            foreach (AvailableRoom r in available)                   // ett rum i taget
+            {
+                string facilities = (r.HasPool ? "pool " : "") + (r.HasRestaurant ? "restaurang " : "");
+                if (facilities == "") facilities = "inga faciliteter ";
+                Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName} ({r.City}), rum {r.RoomNumber}, {r.Capacity} pers, " +
+                                  $"{r.PricePerNight} kr/natt, betyg {r.Rating}/5 | {facilities}| " +
+                                  $"{r.DistanceToBeach} m till strand, {r.DistanceToCenter} m till centrum");
+            }
+            break;
+        }
         case "4": // boka rum
             {
                 int customerId = ReadPositiveInt("Kund-id: ");
@@ -239,4 +286,32 @@ static void PrintError(string message)
     Console.ForegroundColor = ConsoleColor.Yellow;   // byt textfärg till gul
     Console.WriteLine(message);  // skriv meddelandet
     Console.ResetColor(); // tillbaka till vanlig färg
+}
+// Byter läge: spelar ingen roll (null) → ja (true) → nej (false) → spelar ingen roll ...
+static bool? NextTriState(bool? value) => value switch
+{
+    null  => true,
+    true  => false,
+    false => null
+};
+
+// Text för ett filter i tre lägen
+static string TriText(bool? value) => value switch
+{
+    null  => "spelar ingen roll",
+    true  => "ja",
+    false => "nej"
+};
+
+// Frågar efter ett heltal >= 0, Enter = spelar ingen roll (null)
+static int? ReadOptionalInt(string prompt)
+{
+    while (true)
+    {
+        Console.Write(prompt);
+        string? input = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(input)) return null;                        // Enter → spelar ingen roll
+        if (int.TryParse(input, out int number) && number >= 0) return number;   // giltigt tal
+        PrintError("Skriv ett heltal (0 eller mer), eller tryck Enter.");
+    }
 }

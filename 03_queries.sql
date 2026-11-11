@@ -138,6 +138,44 @@ AND NOT EXISTS (
 -- Använder DESC på omdöme eftersom det sorterar resultatet från högst till lägst.
     ORDER BY Accommodation.rating DESC;
 
+
+
+-- 2f. Sök lediga rum med filter (samma SQL som SearchAvailableRoomsAsync i RoomRepository.cs)
+-- NULL = "spelar ingen roll". Byt värdena nedan för att testa olika filter.
+-- Testad i DataGrip: Halmstad, pool = TRUE → endast Demacia visas.
+SET @city       = 'Halmstad';
+SET @check_in   = '2026-12-10';
+SET @check_out  = '2026-12-13';
+SET @guests     = 1;
+SET @pool       = FALSE;
+SET @restaurant = TRUE;
+SET @max_beach  = NULL;
+SET @max_center = NULL;
+
+SELECT Room.id, Accommodation.name AS accommodation_name, City.name AS city_name,
+       Room.room_number, Room.capacity, Room.price_per_night, Accommodation.rating,
+       Accommodation.has_pool, Accommodation.has_restaurant,
+       Accommodation.distance_to_beach_meters, Accommodation.distance_to_center_meters
+FROM Room
+JOIN Accommodation ON Room.accommodation_id = Accommodation.id
+JOIN City          ON Accommodation.city_id = City.id
+WHERE City.name = @city
+  AND Room.capacity >= @guests
+  AND (@pool       IS NULL OR Accommodation.has_pool       = @pool)
+  AND (@restaurant IS NULL OR Accommodation.has_restaurant = @restaurant)
+  AND (@max_beach  IS NULL OR Accommodation.distance_to_beach_meters  <= @max_beach)
+  AND (@max_center IS NULL OR Accommodation.distance_to_center_meters <= @max_center)
+  AND NOT EXISTS (
+      SELECT 1 FROM Booking
+      WHERE Booking.room_id = Room.id
+        AND Booking.check_in_date  < @check_out
+        AND Booking.check_out_date > @check_in)
+ORDER BY Accommodation.rating DESC, Room.price_per_night ASC;
+
+
+
+
+
 -- 3. Skapa en bokning
 
 
