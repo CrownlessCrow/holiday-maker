@@ -109,4 +109,17 @@ public class BookingRepository(MySqlConnection connection)
         int rows = await command.ExecuteNonQueryAsync();    // antal rader som matchade: 1 = ändrad, 0 = nekad
         return rows == 1;  // true om ändrad, annars false
     }
+        // Order: avboka (ta bort) en bokning (steg 6 i 03_queries.sql)
+    // IN: bokningsnummer. UT: true = avbokad, false = bokningen fanns inte
+    public async Task<bool> DeleteBookingAsync(int bookingId)
+    {
+        await using var command = new MySqlCommand( // skriver lappen: DELETE med @lucka
+            "DELETE FROM Booking WHERE id = @booking_id;", connection);
+
+        command.Parameters.AddWithValue("@booking_id", bookingId); // fyll lucka: vilken bokning
+        await command.PrepareAsync(); // MySQL förbereder sig
+
+        int rows = await command.ExecuteNonQueryAsync();// antal borttagna rader: 1 = avbokad, 0 = fanns inte
+        return rows == 1;   // true om avbokad, annars false
+    }
 }

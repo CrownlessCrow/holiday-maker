@@ -30,6 +30,7 @@ while (running)
     Console.WriteLine("4. Boka rum");
     Console.WriteLine("5. Visa kundens bokning");
     Console.WriteLine("6. Ändra antal gäster");
+    Console.WriteLine("7. Avboka");
     Console.WriteLine("0. Avsluta");
     Console.Write("Val: ");
     string? choice = Console.ReadLine();  // läser vad användaren skriver
@@ -161,7 +162,26 @@ while (running)
                 Console.WriteLine($"✅ Bokning {bookingId} har nu {guests} gäster.");
                 break;
             }
+        case "7": //avboka
+            {
+                int bookingId = ReadPositiveInt("Bokningsnummer att avboka: "); 
 
+                Console.Write($"Är du säker på att du vill avboka bokning {bookingId}? (ja/nej): ");
+                if (Console.ReadLine()?.Trim().ToLower() != "ja") // allt utom "j" = avbryt
+                {
+                    Console.WriteLine("Avbokningen avbröts.");
+                    break;
+                }
+
+                bool deleted = await bookings.DeleteBookingAsync(bookingId); // roboten försöker ta bort
+                if (!deleted) // 0 rader = fanns inte
+                {
+                    PrintError($"❌ Bokning {bookingId} finns inte.");
+                    break;
+                }
+                Console.WriteLine($"✅ Bokning {bookingId} är avbokad.");
+                break;
+            }
 
 
 
