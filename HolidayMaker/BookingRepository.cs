@@ -89,4 +89,24 @@ public class BookingRepository(MySqlConnection connection)
         }
         return customerBookings; //löftet uppfylls  och return.
     }
+    // Order: ändra antal gäster på en bokning (steg 5 i 03_queries.sql)
+    // IN: bokningsnummer + nytt antal gäster. UT: true = ändrad, false = nekad
+    public async Task<bool> UpdateGuestsAsync(int bookingId, int guests)
+    {
+        await using var command = new MySqlCommand( // skriver lappen: UPDATE med @luckor
+            """
+            UPDATE Booking
+            JOIN Room ON Booking.room_id = Room.id
+            SET Booking.number_of_guests = @guests
+            WHERE Booking.id = @booking_id
+              AND Room.capacity >= @guests;
+            """, connection); // ändrar BARA om gästerna ryms i rummet
+
+        command.Parameters.AddWithValue("@guests", guests);  // fyll lucka: nytt antal
+        command.Parameters.AddWithValue("@booking_id", bookingId); // fyll lucka: vilken bokning
+        await command.PrepareAsync();  // MySQL förbereder sig
+
+        int rows = await command.ExecuteNonQueryAsync();    // antal rader som matchade: 1 = ändrad, 0 = nekad
+        return rows == 1;  // true om ändrad, annars false
+    }
 }

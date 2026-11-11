@@ -29,6 +29,7 @@ while (running)
     Console.WriteLine("3. Sök lediga rum");
     Console.WriteLine("4. Boka rum");
     Console.WriteLine("5. Visa kundens bokning");
+    Console.WriteLine("6. Ändra antal gäster");
     Console.WriteLine("0. Avsluta");
     Console.Write("Val: ");
     string? choice = Console.ReadLine();  // läser vad användaren skriver
@@ -94,11 +95,11 @@ while (running)
             {
                 int customerId = ReadPositiveInt("Kund-id: ");
 
-               if (!await customers.CustomerExistsAsync(customerId))     // finns kunden inte?
-               {
-                   PrintError("❌ Kund-id finns inte. Välj 1 för att se kunderna.");
-                   break;  // tillbaka till menyn
-               }
+                if (!await customers.CustomerExistsAsync(customerId))     // finns kunden inte?
+                {
+                    PrintError("❌ Kund-id finns inte. Välj 1 för att se kunderna.");
+                    break;  // tillbaka till menyn
+                }
 
 
                 int roomId = ReadPositiveInt("Rum-id: ");
@@ -146,6 +147,22 @@ while (running)
                 }
                 break;  // tillbaka till menyn
             }
+        case "6":
+            {
+                int bookingId = ReadPositiveInt("Bokningsnummer: ");
+                int guests = ReadPositiveInt("Nytt antal gäster: ");
+
+                bool updated = await bookings.UpdateGuestsAsync(bookingId, guests);
+                if (!updated)
+                {
+                    PrintError("❌ Kunde inte ändra: bokningen finns inte eller rummet rymmer inte så många gäster.");
+                    break;
+                }
+                Console.WriteLine($"✅ Bokning {bookingId} har nu {guests} gäster.");
+                break;
+            }
+
+
 
 
         case "0": //avsluta
@@ -200,6 +217,6 @@ static int ReadPositiveInt(string prompt)
 static void PrintError(string message)
 {
     Console.ForegroundColor = ConsoleColor.Yellow;   // byt textfärg till gul
-    Console.WriteLine(message);                       // skriv meddelandet
-    Console.ResetColor();                             // tillbaka till vanlig färg
+    Console.WriteLine(message);  // skriv meddelandet
+    Console.ResetColor(); // tillbaka till vanlig färg
 }
