@@ -118,14 +118,48 @@ while (running)
             if (available.Count == 0)
             {
                 PrintError("Inga lediga rum hittades.");
+
+               
+                if (maxBeach is not null)
+                {
+                    List<AvailableRoom> withoutBeach = await rooms.SearchAvailableRoomsAsync( //Ny låda withoutbeach, andra sökning då jag kalla denna för rekommendations sökning.
+                        city, checkIn, checkOut, guests, pool, restaurant, null, maxCenter, sortByRating);
+
+                    if (withoutBeach.Count > 0) //Om jag inte hitta så händer inget.
+                    {
+                        int nearest = withoutBeach.Min(r => r.DistanceToBeach); // kortaste avståndet bland lediga rum LinQ metoden.
+                                                Console.WriteLine($"Tips: närmaste lediga alternativ ligger {nearest} m från stranden:");
+                        foreach (AvailableRoom r in withoutBeach.Where(r => r.DistanceToBeach == nearest))  // Where behåller bara rummen på närmaste avstånd, t.ex. nearest = 50 -> Demacia 102.
+                        {
+                            Console.WriteLine($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
+                        }
+                    }
+                }
+
+       
+                if (maxCenter is not null)
+                {
+                    List<AvailableRoom> withoutCenter = await rooms.SearchAvailableRoomsAsync(
+                        city, checkIn, checkOut, guests, pool, restaurant, maxBeach, null, sortByRating);
+
+                    if (withoutCenter.Count > 0)
+                    {
+                        int nearest = withoutCenter.Min(r => r.DistanceToCenter);
+                                                Console.WriteLine($"Tips: närmaste lediga alternativ ligger {nearest} m från centrum:");
+                        foreach (AvailableRoom r in withoutCenter.Where(r => r.DistanceToCenter == nearest))
+                        {
+                            Console.WriteLine($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
+                        }
+                    }
+                }
                 break;
             }
             int nights = (checkOut - checkIn).Days; // antal nätter
 
             // Visa vilka filter som användes
             Console.WriteLine($"Filter: pool {TriText(pool)}, restaurang {TriText(restaurant)}, " +
-                              $"Avstånd till stranden {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
-                              $"Avstånd till centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
+                              $"avstånd till stranden {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
+                              $"avstånd till centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
                               $"sortering {(sortByRating ? "betyg" : "pris")}"); //ternary operator
 
             Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
@@ -280,13 +314,28 @@ static int ReadPositiveInt(string prompt)
     }
 }
 
-// Skriver ut ett felmeddelande i gul färg
+// Skriver ut ett felmeddelande i röd färg
 static void PrintError(string message)
 {
-    Console.ForegroundColor = ConsoleColor.Yellow;   // byt textfärg till gul
+    Console.ForegroundColor = ConsoleColor.Red;   // byt textfärg till röd
     Console.WriteLine(message);  // skriv meddelandet
     Console.ResetColor(); // tillbaka till vanlig färg
 }
+
+static void PrintSuccess(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Green;   // grön = lyckadtes
+    Console.WriteLine(message);
+    Console.ResetColor();
+}
+static void PrintTip(string message)
+{
+    Console.ForegroundColor = ConsoleColor.Cyan;    // blå = tips/förslag
+    Console.WriteLine(message);
+    Console.ResetColor();
+}
+
+
 // Byter läge: spelar ingen roll (null) → ja (true) → nej (false) → spelar ingen roll ...
 static bool? NextTriState(bool? value) => value switch
 {
