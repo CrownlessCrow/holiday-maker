@@ -55,7 +55,7 @@ while (running)
             try
             {
                 int newId = await customers.CreateCustomerAsync(firstName, lastName, phone, email);
-                Console.WriteLine($"✅ Kund skapad med id {newId}");
+                 PrintSuccess($"✅ Kund skapad med id {newId}");
             }
             catch (MySqlException ex) // t.ex. email finns redan (UNIQUE)
             {
@@ -65,114 +65,114 @@ while (running)
 
 
         case "3": //sök lediga rum
-        {
-            // Standard: inga filter (spelar ingen roll), sortera på pris
-            bool? pool = null, restaurant = null; // null = spelar ingen roll
-            int? maxBeach = null, maxCenter = null; // null = spelar ingen roll
-            bool sortByRating = false;  // false = pris, true = betyg
-
-            //  1. Vill operatören ha filter? 
-            Console.Write("Vill du lägga till filter? (ja/nej): ");
-            bool choosing = Console.ReadLine()?.Trim().ToLower() == "ja"; // ja -> filtermenyn, annat -> standard
-
-            // ── 2. Filtermeny (bara om man svarade ja) ──
-            while (choosing)
             {
-                Console.WriteLine();
-                Console.WriteLine("--- FILTER ---");
-                Console.WriteLine($"1. {"Pool",-23}{TriText(pool)}"); // -23 = fyll ut till 23 tecken, texten hamnar till vänster.
-                Console.WriteLine($"2. {"Restaurang",-23}{TriText(restaurant)}");
-                Console.WriteLine($"3. {"Avstånd till stranden",-23}{(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}");
-                Console.WriteLine($"4. {"Avstånd till centrum",-23}{(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}");
-                Console.WriteLine($"5. {"Sortering",-23}{(sortByRating ? "betyg (högst först)" : "pris (lägst först)")}");
-                Console.WriteLine("9. Fortsätt till sökning");
-                Console.Write("Val: ");
+                // Standard: inga filter (spelar ingen roll), sortera på pris
+                bool? pool = null, restaurant = null; // null = spelar ingen roll
+                int? maxBeach = null, maxCenter = null; // null = spelar ingen roll
+                bool sortByRating = false;  // false = pris, true = betyg
 
-                switch (Console.ReadLine())
+                //  1. Vill operatören ha filter? 
+                Console.Write("Vill du lägga till filter? (ja/nej): ");
+                bool choosing = Console.ReadLine()?.Trim().ToLower() == "ja"; // ja -> filtermenyn, annat -> standard
+
+                // ── 2. Filtermeny (bara om man svarade ja) ──
+                while (choosing)
                 {
-                    case "1": pool = NextTriState(pool); break;   // spelar ingen roll → ja → nej i Next_Tri_State funktionen.
-                    case "2": restaurant = NextTriState(restaurant); break;
-                    case "3": maxBeach  = ReadOptionalInt("Max meter till strand (Enter = spelar ingen roll): "); break;
-                    case "4": maxCenter = ReadOptionalInt("Max meter till centrum (Enter = spelar ingen roll): "); break;
-                    case "5": sortByRating = !sortByRating; break; // växla pris/betyg
-                    case "9": choosing = false; break;    // klar -> vidare
-                    default:  PrintError("Ogiltigt val."); break;
-                }
-            }
+                    Console.WriteLine();
+                    Console.WriteLine("--- FILTER ---");
+                    Console.WriteLine($"1. {"Pool",-23}{TriText(pool)}"); // -23 = fyll ut till 23 tecken, texten hamnar till vänster.
+                    Console.WriteLine($"2. {"Restaurang",-23}{TriText(restaurant)}");
+                    Console.WriteLine($"3. {"Avstånd till stranden",-23}{(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}");
+                    Console.WriteLine($"4. {"Avstånd till centrum",-23}{(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}");
+                    Console.WriteLine($"5. {"Sortering",-23}{(sortByRating ? "betyg (högst först)" : "pris (lägst först)")}");
+                    Console.WriteLine("9. Fortsätt till sökning");
+                    Console.Write("Val: ");
 
-            // 3. Stad, datum och gäster 
-            string city       = ReadRequired("Stad: ");
-            DateTime checkIn  = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
-            DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
-            if (checkOut <= checkIn)   // samma regel som CHECK i databasen
-            {
-                PrintError("Utcheckning måste vara efter incheckning.");
-                break;
-            }
-            int guests = ReadPositiveInt("Antal gäster: ");
-
-            //4. Sök
-            List<AvailableRoom> available = await rooms.SearchAvailableRoomsAsync(
-                city, checkIn, checkOut, guests, pool, restaurant, maxBeach, maxCenter, sortByRating);
-
-            if (available.Count == 0)
-            {
-                PrintError("Inga lediga rum hittades.");
-
-               
-                if (maxBeach is not null)
-                {
-                    List<AvailableRoom> withoutBeach = await rooms.SearchAvailableRoomsAsync( //Ny låda withoutbeach, andra sökning då jag kalla denna för rekommendations sökning.
-                        city, checkIn, checkOut, guests, pool, restaurant, null, maxCenter, sortByRating);
-
-                    if (withoutBeach.Count > 0) //Om jag inte hitta så händer inget.
+                    switch (Console.ReadLine())
                     {
-                        int nearest = withoutBeach.Min(r => r.DistanceToBeach); // kortaste avståndet bland lediga rum LinQ metoden.
-                                                Console.WriteLine($"Tips: närmaste lediga alternativ ligger {nearest} m från stranden:");
-                        foreach (AvailableRoom r in withoutBeach.Where(r => r.DistanceToBeach == nearest))  // Where behåller bara rummen på närmaste avstånd, t.ex. nearest = 50 -> Demacia 102.
-                        {
-                            Console.WriteLine($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
-                        }
+                        case "1": pool = NextTriState(pool); break;   // spelar ingen roll → ja → nej i Next_Tri_State funktionen.
+                        case "2": restaurant = NextTriState(restaurant); break;
+                        case "3": maxBeach = ReadOptionalInt("Max meter till strand (Enter = spelar ingen roll): "); break;
+                        case "4": maxCenter = ReadOptionalInt("Max meter till centrum (Enter = spelar ingen roll): "); break;
+                        case "5": sortByRating = !sortByRating; break; // växla pris/betyg
+                        case "9": choosing = false; break;    // klar -> vidare
+                        default: PrintError("Ogiltigt val."); break;
                     }
                 }
 
-       
-                if (maxCenter is not null)
+                // 3. Stad, datum och gäster 
+                string city = ReadRequired("Stad: ");
+                DateTime checkIn = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
+                DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
+                if (checkOut <= checkIn)   // samma regel som CHECK i databasen
                 {
-                    List<AvailableRoom> withoutCenter = await rooms.SearchAvailableRoomsAsync(
-                        city, checkIn, checkOut, guests, pool, restaurant, maxBeach, null, sortByRating);
+                    PrintError("Utcheckning måste vara efter incheckning.");
+                    break;
+                }
+                int guests = ReadPositiveInt("Antal gäster: ");
 
-                    if (withoutCenter.Count > 0)
+                //4. Sök
+                List<AvailableRoom> available = await rooms.SearchAvailableRoomsAsync(
+                    city, checkIn, checkOut, guests, pool, restaurant, maxBeach, maxCenter, sortByRating);
+
+                if (available.Count == 0)
+                {
+                    PrintError("Inga lediga rum hittades.");
+
+
+                    if (maxBeach is not null)
                     {
-                        int nearest = withoutCenter.Min(r => r.DistanceToCenter);
-                                                Console.WriteLine($"Tips: närmaste lediga alternativ ligger {nearest} m från centrum:");
-                        foreach (AvailableRoom r in withoutCenter.Where(r => r.DistanceToCenter == nearest))
+                        List<AvailableRoom> withoutBeach = await rooms.SearchAvailableRoomsAsync( //Ny låda withoutbeach, andra sökning då jag kalla denna för rekommendations sökning.
+                            city, checkIn, checkOut, guests, pool, restaurant, null, maxCenter, sortByRating);
+
+                        if (withoutBeach.Count > 0) //Om jag inte hitta så händer inget.
                         {
-                            Console.WriteLine($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
+                            int nearest = withoutBeach.Min(r => r.DistanceToBeach); // kortaste avståndet bland lediga rum LinQ metoden.
+                            PrintTip($"Tips: närmaste lediga alternativ ligger {nearest} m från stranden:");
+                            foreach (AvailableRoom r in withoutBeach.Where(r => r.DistanceToBeach == nearest))  // Where behåller bara rummen på närmaste avstånd, t.ex. nearest = 50 -> Demacia 102.
+                            {
+                                PrintTip($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
+                            }
                         }
                     }
+
+
+                    if (maxCenter is not null)
+                    {
+                        List<AvailableRoom> withoutCenter = await rooms.SearchAvailableRoomsAsync(
+                            city, checkIn, checkOut, guests, pool, restaurant, maxBeach, null, sortByRating);
+
+                        if (withoutCenter.Count > 0)
+                        {
+                            int nearest = withoutCenter.Min(r => r.DistanceToCenter);
+                            PrintTip($"Tips: närmaste lediga alternativ ligger {nearest} m från centrum:");
+                            foreach (AvailableRoom r in withoutCenter.Where(r => r.DistanceToCenter == nearest))
+                            {
+                                PrintTip($"  Rum-id {r.RoomId}: {r.AccommodationName}, rum {r.RoomNumber}, {r.Capacity} pers, {r.PricePerNight} kr/natt");
+                            }
+                        }
+                    }
+                    break;
+                }
+                int nights = (checkOut - checkIn).Days; // antal nätter
+
+                // Visa vilka filter som användes
+                Console.WriteLine($"Filter: pool {TriText(pool)}, restaurang {TriText(restaurant)}, " +
+                                  $"avstånd till stranden {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
+                                  $"avstånd till centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
+                                  $"sortering {(sortByRating ? "betyg" : "pris")}"); //ternary operator
+
+                Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
+                foreach (AvailableRoom r in available)                   // ett rum i taget
+                {
+                    string facilities = (r.HasPool ? "pool " : "") + (r.HasRestaurant ? "restaurang " : "");
+                    if (facilities == "") facilities = "inga faciliteter ";
+                    Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName} ({r.City}), rum {r.RoomNumber}, {r.Capacity} pers, " +
+                                      $"{r.PricePerNight} kr/natt, betyg {r.Rating}/5 | {facilities}| " +
+                                      $"{r.DistanceToBeach} m till strand, {r.DistanceToCenter} m till centrum");
                 }
                 break;
             }
-            int nights = (checkOut - checkIn).Days; // antal nätter
-
-            // Visa vilka filter som användes
-            Console.WriteLine($"Filter: pool {TriText(pool)}, restaurang {TriText(restaurant)}, " +
-                              $"avstånd till stranden {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
-                              $"avstånd till centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
-                              $"sortering {(sortByRating ? "betyg" : "pris")}"); //ternary operator
-
-            Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
-            foreach (AvailableRoom r in available)                   // ett rum i taget
-            {
-                string facilities = (r.HasPool ? "pool " : "") + (r.HasRestaurant ? "restaurang " : "");
-                if (facilities == "") facilities = "inga faciliteter ";
-                Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName} ({r.City}), rum {r.RoomNumber}, {r.Capacity} pers, " +
-                                  $"{r.PricePerNight} kr/natt, betyg {r.Rating}/5 | {facilities}| " +
-                                  $"{r.DistanceToBeach} m till strand, {r.DistanceToCenter} m till centrum");
-            }
-            break;
-        }
         case "4": // boka rum
             {
                 int customerId = ReadPositiveInt("Kund-id: ");
@@ -202,8 +202,8 @@ while (running)
                         PrintError("❌ Kunde inte boka: rummet är upptaget, finns inte eller rymmer inte så många gäster.");
                         break;
                     }
-                    Console.WriteLine($"✅ Bokning skapad! Bokningsnummer: {booking.BookingId}");
-                    Console.WriteLine($"   {booking.Nights} nätter × {booking.PricePerNight} kr = {booking.TotalPrice} kr");
+                    PrintSuccess($"✅ Bokning skapad! Bokningsnummer: {booking.BookingId}");
+                    PrintSuccess($"   {booking.Nights} nätter × {booking.PricePerNight} kr = {booking.TotalPrice} kr");
                 }
                 catch (MySqlException ex)  // t.ex. kund-id finns inte.
                 {
@@ -240,12 +240,12 @@ while (running)
                     PrintError("❌ Kunde inte ändra: bokningen finns inte eller rummet rymmer inte så många gäster.");
                     break;
                 }
-                Console.WriteLine($"✅ Bokning {bookingId} har nu {guests} gäster.");
+                PrintSuccess($"✅ Bokning {bookingId} har nu {guests} gäster.");
                 break;
             }
         case "7": //avboka
             {
-                int bookingId = ReadPositiveInt("Bokningsnummer att avboka: "); 
+                int bookingId = ReadPositiveInt("Bokningsnummer att avboka: ");
 
                 Console.Write($"Är du säker på att du vill avboka bokning {bookingId}? (ja/nej): ");
                 if (Console.ReadLine()?.Trim().ToLower() != "ja") // allt utom "j" = avbryt
@@ -260,7 +260,7 @@ while (running)
                     PrintError($"❌ Bokning {bookingId} finns inte.");
                     break;
                 }
-                Console.WriteLine($"✅ Bokning {bookingId} är avbokad.");
+                PrintSuccess($"✅ Bokning {bookingId} är avbokad.");
                 break;
             }
 
@@ -339,16 +339,16 @@ static void PrintTip(string message)
 // Byter läge: spelar ingen roll (null) → ja (true) → nej (false) → spelar ingen roll ...
 static bool? NextTriState(bool? value) => value switch
 {
-    null  => true,
-    true  => false,
+    null => true,
+    true => false,
     false => null
 };
 
 // Text för ett filter i tre lägen
 static string TriText(bool? value) => value switch
 {
-    null  => "spelar ingen roll",
-    true  => "ja",
+    null => "spelar ingen roll",
+    true => "ja",
     false => "nej"
 };
 
