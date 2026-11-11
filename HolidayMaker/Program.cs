@@ -80,11 +80,11 @@ while (running)
             {
                 Console.WriteLine();
                 Console.WriteLine("--- FILTER ---");
-                Console.WriteLine($"1. Pool          {TriText(pool)}");
-                Console.WriteLine($"2. Restaurang    {TriText(restaurant)}");
-                Console.WriteLine($"3. Max strand    {(maxBeach is null ? "spelar ingen roll" : maxBeach + " m")}");
-                Console.WriteLine($"4. Max centrum   {(maxCenter is null ? "spelar ingen roll" : maxCenter + " m")}");
-                Console.WriteLine($"5. Sortering     {(sortByRating ? "betyg (högst först)" : "pris (lägst först)")}");
+                Console.WriteLine($"1. {"Pool",-23}{TriText(pool)}"); // -23 = fyll ut till 23 tecken, texten hamnar till vänster.
+                Console.WriteLine($"2. {"Restaurang",-23}{TriText(restaurant)}");
+                Console.WriteLine($"3. {"Avstånd till stranden",-23}{(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}");
+                Console.WriteLine($"4. {"Avstånd till centrum",-23}{(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}");
+                Console.WriteLine($"5. {"Sortering",-23}{(sortByRating ? "betyg (högst först)" : "pris (lägst först)")}");
                 Console.WriteLine("9. Fortsätt till sökning");
                 Console.Write("Val: ");
 
@@ -124,8 +124,8 @@ while (running)
 
             // Visa vilka filter som användes
             Console.WriteLine($"Filter: pool {TriText(pool)}, restaurang {TriText(restaurant)}, " +
-                              $"strand {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
-                              $"centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
+                              $"Avstånd till stranden {(maxBeach is null ? "spelar ingen roll" : "max " + maxBeach + " m")}, " + //ternary operator
+                              $"Avstånd till centrum {(maxCenter is null ? "spelar ingen roll" : "max " + maxCenter + " m")}, " + //ternary operator
                               $"sortering {(sortByRating ? "betyg" : "pris")}"); //ternary operator
 
             Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
