@@ -9,7 +9,7 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
         await using var command = new MySqlCommand(                 // förbereder SELECT frågan (skickas inte än)
             "SELECT id, first_name, last_name, phone, email FROM Customer ORDER BY id;", connection);
 
-        await using var reader = await command.ExecuteReaderAsync();   // ring MySQL, få svar att läsa (raderna)
+        await using var reader = await command.ExecuteReaderAsync();   // skicka frågorna till MySQL, få svar att läsa (raderna)
 
         var customers = new List<Customer>();                      // tom lista att fylla, kan bara innehålla customer typ eller ny mapp.   
         while (await reader.ReadAsync())                           // läser en rad i taget till det är slut
@@ -28,7 +28,7 @@ public class CustomerRepository(MySqlConnection connection)        // roboten f�
 
  // Order: skapa en ny kund, returnerar nya kundens id
     public async Task<int> CreateCustomerAsync(string firstName, string lastName, string phone, string? email) // skapar en kund, lovar tillbaka nya kundens id (nästa lediga, t.ex. 6)
-    {
+    { //Auto_Increment
         await using var command = new MySqlCommand(               // förbereder INSERT-frågan med @luckor (skickas inte än)
             "INSERT INTO Customer (first_name, last_name, phone, email) " +
             "VALUES (@first_name, @last_name, @phone, @email);", connection);

@@ -50,7 +50,7 @@ public class RoomRepository(MySqlConnection connection)
         command.Parameters.AddWithValue("@max_center", (object?)maxCenter ?? DBNull.Value);    // tal / NULL
         await command.PrepareAsync(); // MySQL får mallen först, användarens text skickas separat så den aldrig körs som kod. (City, Guests)
 
-        await using var reader = await command.ExecuteReaderAsync(); // Skapar en tom lista där varje ledigt rum läggs till
+        await using var reader = await command.ExecuteReaderAsync(); // skickar frågan till MySQL och får en läsare för svaret (raderna)
 
         var rooms = new List<AvailableRoom>(); // Skapar en tom lista där varje ledigt rum läggs till
         while (await reader.ReadAsync())

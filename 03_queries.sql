@@ -282,3 +282,13 @@ ORDER BY Booking.id;
 -- 6 Avboka (Ta bort bokning)
 -- Raderade ett par bokningar då det va för 26,27, 28 och 29. Alltså BookingsID.
 DELETE FROM Booking Where id = 27;
+
+
+-- Kontroll
+
+SELECT
+    (SELECT COUNT(*) FROM City)          AS orter,      -- minst 2
+    (SELECT COUNT(*) FROM Accommodation) AS boenden,    -- minst 5
+    (SELECT COUNT(*) FROM Room)          AS rum,        -- minst 20
+    (SELECT COUNT(*) FROM Customer)      AS kunder,     -- minst 5
+    (SELECT COUNT(*) FROM Booking)       AS bokningar;  -- minst 25

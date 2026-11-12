@@ -137,7 +137,7 @@ Appen svarade "Inga lediga rum hittades" och alla bokningar fanns kvar.
 
 ## Tester
 
-Alla menyval är testade, både lyckade fall och felfall (27 tester).
+Alla menyval är testade, både lyckade fall och felfall (35 tester).
 Se testdokumentationen i inlämningen.
 
 ---

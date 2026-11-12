@@ -9,8 +9,8 @@ string connectionString = settings.RootElement // Går in i ConnectionStrings, t
     .GetProperty("HolidayMaker")
     .GetString()!;
 
-await using var connection = new MySqlConnection(connectionString); // skapa koppling med inloggningen, kopplingen stängs automatiskt när appen är klar
-await connection.OpenAsync();// inger upp och loggar in i MySQL
+await using var connection = new MySqlConnection(connectionString); // skapa koppling med inloggningen, kopplingen stängs automatiskt när appen är klar är förberedd
+await connection.OpenAsync();// ringer upp och loggar in i MySQL och är redå
 
 var customers = new CustomerRepository(connection); //skapar en robot som håller kopplingen och jobbar när den får en order
 var rooms = new RoomRepository(connection); // Robot för rum
@@ -57,9 +57,9 @@ while (running)
                 int newId = await customers.CreateCustomerAsync(firstName, lastName, phone, email);
                  PrintSuccess($"✅ Kund skapad med id {newId}");
             }
-            catch (MySqlException ex) // t.ex. email finns redan (UNIQUE)
+            catch (MySqlException ex) // t.ex. email finns redan (UNIQUE) ananrs KRASCH
             {
-                PrintError($"❌ Kunde inte skapa kund: {ex.Message}");
+                PrintError($"❌ Kunde inte skapa kund: {ex.Message}"); //ex message på felet som fångade alltså mejlet.
             }
             break;
 
@@ -123,9 +123,9 @@ while (running)
                     if (maxBeach is not null)
                     {
                         List<AvailableRoom> withoutBeach = await rooms.SearchAvailableRoomsAsync( //Ny låda withoutbeach, andra sökning då jag kalla denna för rekommendations sökning.
-                            city, checkIn, checkOut, guests, pool, restaurant, null, maxCenter, sortByRating);
+                            city, checkIn, checkOut, guests, pool, restaurant, null, maxCenter, sortByRating);// samma sökning, men null = inget strandkrav, ta alla stränder med avstånd som räknas
 
-                        if (withoutBeach.Count > 0) //Om jag inte hitta så händer inget.
+                        if (withoutBeach.Count > 0)  // hittade rekommendationssökningen minst ett rum?
                         {
                             int nearest = withoutBeach.Min(r => r.DistanceToBeach); // kortaste avståndet bland lediga rum LinQ metoden.
                             PrintTip($"Tips: närmaste lediga alternativ ligger {nearest} m från stranden:");
@@ -165,7 +165,7 @@ while (running)
                 Console.WriteLine($"Lediga rum i {city}, {nights} nätter:");
                 foreach (AvailableRoom r in available)                   // ett rum i taget
                 {
-                    string facilities = (r.HasPool ? "pool " : "") + (r.HasRestaurant ? "restaurang " : "");
+                    string facilities = (r.HasPool ? "pool " : "") + (r.HasRestaurant ? "restaurang " : ""); //sök resultat
                     if (facilities == "") facilities = "inga faciliteter ";
                     Console.WriteLine($"Rum-id {r.RoomId}: {r.AccommodationName} ({r.City}), rum {r.RoomNumber}, {r.Capacity} pers, " +
                                       $"{r.PricePerNight} kr/natt, betyg {r.Rating}/5 | {facilities}| " +

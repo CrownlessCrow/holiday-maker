@@ -1,8 +1,9 @@
-
+-- Radera gamla databasen om den finns, skapa en ny och börja använda den
 DROP DATABASE IF EXISTS holiday_maker;
 CREATE DATABASE holiday_maker;
 USE holiday_maker;
 
+-- Tabeller
 CREATE TABLE `Accommodation`(
     `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `city_id` INT NOT NULL,
@@ -40,7 +41,7 @@ CREATE TABLE `Booking`(
     `check_in_date` DATE NOT NULL,
     `check_out_date` DATE NOT NULL
 );
-ALTER TABLE
+ALTER TABLE -- Indexering
     `Booking` ADD INDEX `booking_room_id_check_in_date_check_out_date_index`(
         `room_id`,
         `check_in_date`,
@@ -52,7 +53,7 @@ CREATE TABLE `City`(
 );
 ALTER TABLE
     `City` ADD UNIQUE `city_name_unique`(`name`);
-ALTER TABLE
+ALTER TABLE                                             -- FOREIGN KEY KOPPLAD MED PRIMÄR KEY
     `Accommodation` ADD CONSTRAINT `accommodation_city_id_foreign` FOREIGN KEY(`city_id`) REFERENCES `City`(`id`);
 ALTER TABLE
     `Room` ADD CONSTRAINT `room_accommodation_id_foreign` FOREIGN KEY(`accommodation_id`) REFERENCES `Accommodation`(`id`);
