@@ -35,7 +35,7 @@ while (running)
     Console.Write("Val: ");
     string? choice = Console.ReadLine();  // läser vad användaren skriver
 
-    switch (choice)      //Gjort switch case för o väljer vad som ska hända
+    switch (choice)  //Gjort switch case för o väljer vad som ska hända
     {
         case "1": //visa kunder
             foreach (Customer c in await customers.GetCustomersAsync())
