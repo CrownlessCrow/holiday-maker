@@ -40,6 +40,8 @@ och båda ansluter till samma lokala MySQL-databas (localhost:3306)
 - Mockaroo för att generera testkunder
 - Claude AI som handledare under utveckling
 - Github för versionshantering
+- Diskuterade olika lösningsförslag med klasskamrater, fick och gav återkoppling på datamodell och kod
+- Symboler i meddelande (✅ ❌ 🔴 🟢 🔵) via Windows emojipanel (Windows-tagent + . )
 
 ---
 
@@ -147,16 +149,12 @@ Se testdokumentationen i inlämningen.
 - Om två bokningar görs exakt samtidigt kan de i teorin krocka.
   En transaktion som låser rummet (`SELECT FOR UPDATE`) skulle stänga det.
 - Operatören måste känna till kund-id och rum-id. Sök på namn eller telefon vore smidigare.
-- Det går att söka och boka datum bakåt i tiden.
+- Appen kontrollerar inte att datumen ligger i december 2026, som uppgiften anger som bokningsbar    period. Det går därför att söka och boka datum bakåt i tiden.
+- Det går inte att ändra eller ta bort en kund. 
+- Ändring av gäster ger samma felmeddelande oavsett om bokningen saknas eller rummet är för litet.
+  Att först kontrollera om bokningen finns skulle ge ett tydligare meddelande.
+- Vid avbokning frågar appen "Är du säker?" innan den vet om bokningen finns.
 
 ---
 
 
-Återkommer 
-
-- Ändring av gäster ger samma felmeddelande oavsett om bokningen saknas eller rummet är för litet.
-  Att först kontrollera om bokningen finns skulle ge ett tydligare meddelande.
-- Vid avbokning frågar appen "Är du säker?" innan den vet om bokningen finns.
-- Om MySQL inte är igång kraschar appen vid start istället för att visa ett tydligt felmeddelande.
-- Byte av rum eller datum i en befintlig bokning ingår inte (enligt uppgiften), så operatören
-  måste avboka och boka om.
