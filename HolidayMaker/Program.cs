@@ -101,7 +101,15 @@ while (running)
                 }
 
                 // 3. Stad, datum och gäster 
-                string city = ReadRequired("Stad: ");
+                string city = ReadRequired("Stad (Halmstad eller Malmö): ");
+
+                if (city.ToLower() != "halmstad" && city.ToLower() != "malmö") // tillåter även små bokstäver
+                {
+                    PrintError("Orten finns inte. Välj Halmstad eller Malmö.");
+                    break;
+                }
+
+
                 DateTime checkIn = ReadDate("Incheckning (ÅÅÅÅ-MM-DD): ");
                 DateTime checkOut = ReadDate("Utcheckning (ÅÅÅÅ-MM-DD): ");
                 if (checkOut <= checkIn)   // samma regel som CHECK i databasen
