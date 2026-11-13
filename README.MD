@@ -56,8 +56,8 @@ Starta MySQL på `localhost:3306` (jag använder Docker)
 **2. Skapa databasen**, kör filerna i den här ordningen:
 
 ```
-- 01_schema_databas_tabell.sql   → databas, tabeller och constraints
-- 02_testdata.sql                → testdata (städer, hotell, rum, kunder, bokningar)
+- 01_schema_databas_tabell.sql   -> databas, tabeller och constraints
+- 02_testdata.sql                -> testdata (städer, hotell, rum, kunder, bokningar)
 - 03_queries     → frågorna appen använder, för att LÄSA och TESTA
 ```
 
@@ -137,7 +137,7 @@ Appen svarade "Inga lediga rum hittades" och alla bokningar fanns kvar.
 
 ## Tester
 
-Alla menyval är testade, både lyckade fall och felfall (36 tester).
+Alla menyval är testade, både lyckade fall och felfall (37 tester).
 Se testdokumentationen i inlämningen.
 
 ---

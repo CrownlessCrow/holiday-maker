@@ -283,7 +283,7 @@ ORDER BY Booking.id;
 -- Raderade ett par bokningar då det va för 26,27, 28 och 29. Alltså BookingsID.
 DELETE FROM Booking Where id = 27;
 
-
+UPDATE Accommodation SET rating = 6 WHERE id = 1;
 -- Kontroll
 
 SELECT
